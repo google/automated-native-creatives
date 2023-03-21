@@ -11,15 +11,35 @@
     limitations under the License.
  -->
 
-# Automated Native Creatives
+# Automated Native Creatives (ANC)
 
-This tool allows creating and managing DV360 Line Items
+[![Code Style: Google](https://img.shields.io/badge/code%20style-google-blueviolet.svg)](https://github.com/google/gts)
 
-## Prerequisites
+## Overview
 
-- A copy of the [Google Sheets Template](https://docs.google.com/spreadsheets/d/1amPxTt3LwRTYpnIWK2whGcrYbOs5EICB8Wv5yQG2VMQ)
-- Google Cloud Project with DV360 API enabled
+This tool enables efficient management of DV360 Native Site Creatives via a Google Sheets feed
 
-## How it works
+Simply provide the details of the Creatives you want to manage and let ANC handle any updates
 
-Please follow the instructions in the 'How to use' Sheet in the Template
+## Getting started
+
+1. Create a [Google Cloud](https://console.cloud.google.com) project or re-use an existing one
+
+1. Create an [OAuth Consent Screen](https://console.cloud.google.com/apis/credentials/consent)
+    - Follow the instructions in the setup wizard
+
+1. Enable the following APIs:
+    - [Display & Video 360](https://console.cloud.google.com/apis/library/displayvideo.googleapis.com)
+    - [Google Drive](https://console.cloud.google.com/apis/library/drive.googleapis.com)
+
+1. Make a copy of the [Template](https://docs.google.com/spreadsheets/d/1amPxTt3LwRTYpnIWK2whGcrYbOs5EICB8Wv5yQG2VMQ)
+
+1. Follow the instructions in the 'How to use' Sheet of the Template
+
+## How to run
+
+You can trigger the tool either manually using the "ANC" Sheets menu or schedule an Apps Script Trigger to call `processFeed()`
+
+## Disclaimer
+
+This is not an officially supported Google product.
