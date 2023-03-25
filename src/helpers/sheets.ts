@@ -1,12 +1,11 @@
 /**
- * @license
  * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +19,10 @@
  */
 
 export class SheetsService {
-  spreadsheet_: GoogleAppsScript.Spreadsheet.Spreadsheet;
+  private static instance: SheetsService;
+  private readonly spreadsheet_: GoogleAppsScript.Spreadsheet.Spreadsheet;
 
-  constructor(spreadsheetId = undefined) {
+  constructor(spreadsheetId?: string) {
     let spreadsheet;
 
     if (spreadsheetId) {
@@ -37,7 +37,7 @@ export class SheetsService {
     } else {
       spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     }
-    /** @private @const {?SpreadsheetApp.Spreadsheet} */
+
     this.spreadsheet_ = spreadsheet;
   }
 
@@ -184,5 +184,18 @@ export class SheetsService {
    */
   getSpreadsheetApp() {
     return SpreadsheetApp;
+  }
+
+  /**
+   * Returns the SheetsService instance, initializing it if it does not exist yet.
+   *
+   * @param {string} spreadsheetId
+   * @returns {!SheetsService} The initialized SheetsService instance
+   */
+  static getInstance(spreadsheetId?: string) {
+    if (typeof this.instance === 'undefined') {
+      this.instance = new SheetsService(spreadsheetId);
+    }
+    return this.instance;
   }
 }
