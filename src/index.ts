@@ -1,12 +1,11 @@
 /**
- * @license
  * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,19 +19,9 @@ import { DV360Api } from './helpers/dv360';
 import { SheetsService } from './helpers/sheets';
 import { MultiLogger } from './util/logger';
 
-/** @type {?SheetsService} */
-let sheetsService: SheetsService;
-
-/** @type {?DV360Api} */
-let dv360Api: DV360Api;
-
-/** @type {?MultiLogger} */
-let multiLogger: MultiLogger;
-
-/** @type {?GoogleAppsScript.Base.Ui} */
 let ui: GoogleAppsScript.Base.Ui;
 
-const advertiserId = getSheetsService().getCellValue(
+const advertiserId = SheetsService.getInstance().getCellValue(
   CONFIG.sheets.config.name,
   CONFIG.sheets.config.fields.advertiserId.row,
   CONFIG.sheets.config.fields.advertiserId.col
@@ -45,7 +34,7 @@ function onOpen(e: any) {
   getUi()
     .createMenu('ANC')
     .addSubMenu(
-      ui
+      getUi()
         .createMenu('Logo')
         .addItem('Set ID from Creative', 'setLogoAssetIdFromCreative')
         .addItem('Set ID from URL', 'setLogoAssetIdFromUrl')
@@ -70,95 +59,9 @@ function stringEllipsis(str: string, maxLength: number) {
 }
 
 /**
- * Get Creative IDs from Line Items
- *
- * @param {string} lineItemId
- * @returns {string[]}
- */
-function getCreativeIdsFromLineItem(lineItemId: any) {
-  const lineItem = getDV360Api().getLineItem(advertiserId, lineItemId);
-  const ids = Object.keys(lineItem).includes('creativeIds')
-    ? lineItem.creativeIds
-    : [];
-
-  return ids;
-}
-
-/**
- * Assign Creative to Line Items.
- *
- * @param {string[]} lineItemIds
- * @param {string} creativeId
- */
-function assignCreativeToLineItems(lineItemIds: string[], creativeId: string) {
-  let success = true;
-
-  for (const lineItemId of lineItemIds) {
-    const existingCreativeIds = getCreativeIdsFromLineItem(lineItemId);
-    const lineItem = {
-      advertiserId,
-      lineItemId,
-      creativeIds: existingCreativeIds.concat([creativeId]),
-    };
-
-    try {
-      Logger.log(`Assigning ${creativeId} to ${lineItemId}`);
-      getDV360Api().updateLineItem(lineItem);
-    } catch (err) {
-      getLogger().log(`Failed to assign Creative to Line Item: ${err}`);
-      success = false;
-    }
-  }
-
-  if (!success) {
-    throw new Error('Assigning Creative to at least 1 Line Item failed');
-  }
-}
-
-/**
- * Unassign Creative from Line Item.
- *
- * @param {string[]} lineItemIds
- * @param {string} creativeId
- */
-function unassignCreativeFromLineItems(
-  lineItemIds: string[],
-  creativeId: string
-) {
-  let success = true;
-
-  for (const lineItemId of lineItemIds) {
-    const originalLineItem = getDV360Api().getLineItem(
-      advertiserId,
-      lineItemId
-    );
-    const lineItem = {
-      advertiserId,
-      lineItemId,
-      creativeIds: originalLineItem.creativeIds.filter(
-        (id: any) => id !== creativeId
-      ),
-    };
-
-    try {
-      Logger.log(`Unassigning ${creativeId} from ${lineItemId}`);
-      getDV360Api().updateLineItem(lineItem);
-    } catch (err) {
-      getLogger().log(`Failed to unassign Creative from Line Item: ${err}`);
-      success = false;
-    }
-  }
-
-  if (!success) {
-    throw new Error('Unassigning Creative from at least 1 Line Item failed');
-  }
-}
-
-/**
  * Fetch and set logo asset ID from existing creative.
  */
 function setLogoAssetIdFromCreative() {
-  const ui = SpreadsheetApp.getUi();
   const response = getUi().prompt(
     'Set Logo Asset ID',
     'Enter existing Creative ID',
@@ -166,8 +69,8 @@ function setLogoAssetIdFromCreative() {
   );
 
   // Process the user's response
-  if (response.getSelectedButton() == getUi().Button.OK) {
-    const creative = getDV360Api().getCreative(
+  if (response.getSelectedButton() === getUi().Button.OK) {
+    const creative = DV360Api.getInstance().getCreative(
       advertiserId,
       response.getResponseText()
     );
@@ -183,10 +86,10 @@ function setLogoAssetIdFromCreative() {
       return;
     }
 
-    getLogger().log(logoAsset);
+    MultiLogger.getInstance().log(logoAsset);
 
     // Write Logo Asset ID to Config sheet
-    getSheetsService().setCellValue(
+    SheetsService.getInstance().setCellValue(
       CONFIG.sheets.config.fields.logoAssetId.row,
       CONFIG.sheets.config.fields.logoAssetId.col,
       logoAsset.asset.mediaId,
@@ -217,7 +120,7 @@ function setLogoAssetIdFromUrl() {
     return;
   }
 
-  const logoAssetId = getDV360Api().uploadAssetFromUrl(
+  const logoAssetId = DV360Api.getInstance().uploadAssetFromUrl(
     advertiserId,
     response.getResponseText(),
     'asset.jpg'
@@ -230,7 +133,7 @@ function setLogoAssetIdFromUrl() {
   }
 
   // Write Logo Asset ID to Config sheet
-  getSheetsService().setCellValue(
+  SheetsService.getInstance().setCellValue(
     CONFIG.sheets.config.fields.logoAssetId.row,
     CONFIG.sheets.config.fields.logoAssetId.col,
     logoAssetId,
@@ -265,7 +168,7 @@ function setLogoAssetIdFromDrive() {
 
   const fileBlob = DriveApp.getFileById(fileId).getBlob();
 
-  const logoAssetId = getDV360Api().uploadAssetFromFile(
+  const logoAssetId = DV360Api.getInstance().uploadAssetFromFile(
     advertiserId,
     fileBlob,
     'asset.jpg'
@@ -278,7 +181,7 @@ function setLogoAssetIdFromDrive() {
   }
 
   // Write Logo Asset ID to Config sheet
-  getSheetsService().setCellValue(
+  SheetsService.getInstance().setCellValue(
     CONFIG.sheets.config.fields.logoAssetId.row,
     CONFIG.sheets.config.fields.logoAssetId.col,
     logoAssetId,
@@ -301,9 +204,9 @@ function processFeed() {
   cleanupFeed();
 
   // Get all Feed rows
-  const feed = getSheetsService()
+  const feed = SheetsService.getInstance()
     .getRangeData(CONFIG.sheets.feed.name, 2, 1)
-    .filter((row) => !row.every((cell) => cell === ''));
+    .filter(row => !row.every(cell => cell === ''));
 
   feed.forEach((row: string[], index: number) => {
     // Skip empty rows
@@ -311,7 +214,7 @@ function processFeed() {
       return;
     }
 
-    getLogger().log(`Processing row ${index + 2}`);
+    MultiLogger.getInstance().log(`Processing row ${index + 1}`);
 
     try {
       const hash = hashRow(row);
@@ -324,12 +227,17 @@ function processFeed() {
         const creativeId = createNativeCreative(row);
         row[CONFIG.sheets.feed.columns.creativeId] = creativeId;
 
-        assignCreativeToLineItems(lineItemIds, creativeId);
+        DV360Api.getInstance().assignCreativeToLineItems(
+          advertiserId,
+          lineItemIds,
+          creativeId
+        );
       } else if (row[CONFIG.sheets.feed.columns.hash] !== hash) {
         // Existing creative has been updated
         updateNativeCreative(row);
 
-        assignCreativeToLineItems(
+        DV360Api.getInstance().assignCreativeToLineItems(
+          advertiserId,
           lineItemIds,
           row[CONFIG.sheets.feed.columns.creativeId]
         );
@@ -341,13 +249,13 @@ function processFeed() {
       // Indicate success
       row[CONFIG.sheets.feed.columns.status] = CONFIG.sheets.feed.enums.success;
     } catch (err: any) {
-      getLogger().log(err);
+      MultiLogger.getInstance().log(err);
 
       // Indicate failure
       row[CONFIG.sheets.feed.columns.status] = CONFIG.sheets.feed.enums.failed;
     } finally {
       // Update row
-      getSheetsService().setValuesInDefinedRange(
+      SheetsService.getInstance().setValuesInDefinedRange(
         CONFIG.sheets.feed.name,
         index + 2,
         1,
@@ -368,7 +276,7 @@ function hashRow(row: string[]) {
     Utilities.DigestAlgorithm.MD5,
     JSON.stringify(row.slice(2, -1))
   )
-    .map((chr) => {
+    .map(chr => {
       return (chr + 256).toString(16).slice(-2);
     })
     .join('');
@@ -388,20 +296,36 @@ function createNativeCreative(row: string[]) {
   const url = row[CONFIG.sheets.feed.columns.url];
   const assetUrl = row[CONFIG.sheets.feed.columns.asset];
   const filename = row[CONFIG.sheets.feed.columns.filename];
-  const width = row[CONFIG.sheets.feed.columns.width];
-  const height = row[CONFIG.sheets.feed.columns.height];
+  const width = Number(row[CONFIG.sheets.feed.columns.width]);
+  const height = Number(row[CONFIG.sheets.feed.columns.height]);
   const callToAction = row[CONFIG.sheets.feed.columns.callToAction];
 
-  getLogger().log(`Creating creative ${name}`);
+  MultiLogger.getInstance().log(`Creating creative ${name}`);
+
+  let assetMediaId;
 
   // Upload Asset
-  const assetMediaId = getDV360Api().uploadAssetFromUrl(
-    advertiserId,
-    assetUrl,
-    filename
-  );
+  if (assetUrl.startsWith('https://drive.google.com')) {
+    const folderId = DriveHelper.getInstance().extractFolderId(assetUrl);
+    const fileBlob = DriveHelper.getInstance().getFileInDriveFolder(
+      folderId,
+      filename
+    );
 
-  getLogger().log(`Asset ${assetMediaId} uploaded`);
+    assetMediaId = DV360Api.getInstance().uploadAssetFromFile(
+      advertiserId,
+      fileBlob,
+      filename
+    );
+  } else {
+    assetMediaId = DV360Api.getInstance().uploadAssetFromUrl(
+      advertiserId,
+      assetUrl,
+      filename
+    );
+  }
+
+  MultiLogger.getInstance().log(`Asset ${assetMediaId} uploaded`);
 
   // Create Creative
   const builtCreative = buildNativeCreative(
@@ -414,19 +338,21 @@ function createNativeCreative(row: string[]) {
     height,
     callToAction
   );
-  const uploadedCreative = getDV360Api().createCreative(
+  const uploadedCreative = DV360Api.getInstance().createCreative(
     advertiserId,
     builtCreative
   );
 
-  getLogger().log(uploadedCreative);
+  MultiLogger.getInstance().log(uploadedCreative);
 
   if (!Object.keys(uploadedCreative).includes('creativeId')) {
-    getLogger().log('Error creating creative');
+    MultiLogger.getInstance().log('Error creating creative');
     return null;
   }
 
-  getLogger().log(`Creative ${uploadedCreative.creativeId} created`);
+  MultiLogger.getInstance().log(
+    `Creative ${uploadedCreative.creativeId} created`
+  );
 
   return uploadedCreative.creativeId;
 }
@@ -435,14 +361,14 @@ function createNativeCreative(row: string[]) {
  * Remove all rows in 'Feed' set up for removal.
  */
 function cleanupFeed() {
-  getLogger().log('Cleaning up...');
+  MultiLogger.getInstance().log('Cleaning up...');
 
   let deleteCorrection = 0;
   let adjustedRowIndex: any;
 
-  const feed = getSheetsService()
+  const feed = SheetsService.getInstance()
     .getRangeData(CONFIG.sheets.feed.name, 2, 1)
-    .filter((row) => !row.every((cell) => cell === ''));
+    .filter(row => !row.every(cell => cell === ''));
 
   feed.forEach((row: string[], index: number) => {
     try {
@@ -455,10 +381,12 @@ function cleanupFeed() {
 
       adjustedRowIndex = index + 2; // - deleteCorrection;
 
-      getLogger().log(`Pausing ${row[CONFIG.sheets.feed.columns.name]}`);
+      MultiLogger.getInstance().log(
+        `Pausing ${row[CONFIG.sheets.feed.columns.name]}`
+      );
 
       // Pause Creative in DV360
-      getDV360Api().pauseCreative(
+      DV360Api.getInstance().pauseCreative(
         advertiserId,
         row[CONFIG.sheets.feed.columns.creativeId] as string
       );
@@ -467,7 +395,9 @@ function cleanupFeed() {
       const lineItemIds = (row[CONFIG.sheets.feed.columns.lineItemId] as string)
         .replace(/\s/g, '')
         .split(',');
-      unassignCreativeFromLineItems(
+
+      DV360Api.getInstance().unassignCreativeFromLineItems(
+        advertiserId,
         lineItemIds,
         row[CONFIG.sheets.feed.columns.creativeId]
       );
@@ -479,7 +409,7 @@ function cleanupFeed() {
       //getDV360Api().deleteCreative(advertiserId, row[CONFIG.sheets.feed.columns.creativeId]);
 
       // Add 1 to adjust for 0-based, 1 for the header and subtract delete correction
-      getSheetsService().clearDefinedRange(
+      SheetsService.getInstance().clearDefinedRange(
         CONFIG.sheets.feed.name,
         adjustedRowIndex,
         1,
@@ -489,10 +419,10 @@ function cleanupFeed() {
 
       deleteCorrection += 1;
     } catch (err: any) {
-      getLogger().log(err);
+      MultiLogger.getInstance().log(err);
       row[CONFIG.sheets.feed.columns.status] = CONFIG.sheets.feed.enums.failed;
 
-      getSheetsService().setValuesInDefinedRange(
+      SheetsService.getInstance().setValuesInDefinedRange(
         CONFIG.sheets.feed.name,
         adjustedRowIndex,
         1,
@@ -500,20 +430,6 @@ function cleanupFeed() {
       );
     }
   });
-}
-
-/**
- * Get all Native Creatives.
- *
- * @returns {Object}
- */
-function getAllNativeCreatives() {
-  // Set creative type as filter
-  const filter = {
-    filter: 'creativeType=CREATIVE_TYPE_NATIVE',
-  };
-
-  return getDV360Api().listCreatives(advertiserId, filter);
 }
 
 /**
@@ -535,12 +451,12 @@ function updateNativeCreative(row: string[]) {
   );
   const cta = row[CONFIG.sheets.feed.columns.callToAction];
 
-  getLogger().log('Updating creative...');
+  MultiLogger.getInstance().log('Updating creative...');
 
   // Get creative by ID
-  let creative = getDV360Api().getCreative(advertiserId, creativeId);
+  let creative = DV360Api.getInstance().getCreative(advertiserId, creativeId);
 
-  getLogger().log('Got current live creative');
+  MultiLogger.getInstance().log('Got current live creative');
 
   // Update mask container
   const updateMask = new Set<string>([]);
@@ -590,15 +506,15 @@ function updateNativeCreative(row: string[]) {
     updateMask.add('assets');
   }
 
-  const res = getDV360Api().updateCreative(
+  const res = DV360Api.getInstance().updateCreative(
     creative,
     Array.from(updateMask).join(',')
   );
 
-  getLogger().log(res);
+  MultiLogger.getInstance().log(res);
 
   if (!Object.keys(res).includes('error')) {
-    getLogger().log(res.error);
+    MultiLogger.getInstance().log(res.error);
   }
 
   return res && !Object.keys(res).includes('error');
@@ -638,24 +554,25 @@ function updateNativeCreativeAssetContentByRole(
  * @param {string} mainMediaId
  * @param {number} width
  * @param {number} height
+ * @param {string} callToAction
  * @return {Object}
  */
 function buildNativeCreative(
-  displayName: any,
-  headline: any,
-  body: any,
-  url: any,
-  mainMediaId: any,
-  width: any,
-  height: any,
-  callToAction: any
+  displayName: string,
+  headline: string,
+  body: string,
+  url: string,
+  mainMediaId: string,
+  width: number,
+  height: number,
+  callToAction: string
 ) {
-  const captionUrl = getSheetsService().getCellValue(
+  const captionUrl = SheetsService.getInstance().getCellValue(
     CONFIG.sheets.config.name,
     CONFIG.sheets.config.fields.captionUrl.row,
     CONFIG.sheets.config.fields.captionUrl.col
   );
-  const logoAssetId = getSheetsService().getCellValue(
+  const logoAssetId = SheetsService.getInstance().getCellValue(
     CONFIG.sheets.config.name,
     CONFIG.sheets.config.fields.logoAssetId.row,
     CONFIG.sheets.config.fields.logoAssetId.col
@@ -717,41 +634,8 @@ function buildNativeCreative(
   };
 }
 
-/**
- * Returns the SheetsService instance, initializing it if it does not exist yet.
- *
- * @return {!SheetsService} The initialized SheetsService instance
- */
-function getSheetsService() {
-  if (sheetsService === undefined) {
-    sheetsService = new SheetsService();
-  }
-  return sheetsService;
-}
-
-/**
- * Returns the DV360Api instance, initializing it if it does not exist yet.
- *
- * @return {!DV360Api} The initialized DV360Api instance
- */
-function getDV360Api() {
-  if (dv360Api === undefined) {
-    dv360Api = new DV360Api();
-  }
-  return dv360Api;
-}
-
-/**
- * Returns the MultiLogger instance, initializing it if it does not exist yet.
- *
- * @return {!MultiLogger} The initialized MultiLogger instance
- */
-function getLogger() {
-  return MultiLogger;
-}
-
 function getUi() {
-  if (ui === undefined) {
+  if (typeof ui === 'undefined') {
     ui = SpreadsheetApp.getUi();
   }
 
