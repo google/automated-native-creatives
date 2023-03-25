@@ -1,12 +1,11 @@
 /**
- * @license
  * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,11 +32,13 @@ interface LineItem {
  */
 
 export class DV360Api extends ApiHelper {
+  private static instance: DV360Api;
+
   /**
    * Constructor.
    */
-  constructor() {
-    super('https://displayvideo.googleapis.com/v1');
+  private constructor() {
+    super('https://displayvideo.googleapis.com/v2');
   }
 
   /**
@@ -263,7 +264,24 @@ export class DV360Api extends ApiHelper {
    */
   uploadAssetFromUrl(advertiserId: string, url: string, filename: string) {
     // Download asset from URL
-    const response = UrlFetchApp.fetch(url);
+    const params = {
+      muteHttpExceptions: false,
+      contentType: 'application/json',
+    };
+    const request = UrlFetchApp.getRequest(url, params);
+
+    console.log('request', JSON.stringify(request));
+
+    const response = UrlFetchApp.fetch(url, { muteHttpExceptions: false });
+
+    if (response.getResponseCode() !== 200) {
+      throw new Error(
+        `Error loading the asset from URL: ${JSON.stringify(
+          response.getContentText()
+        )}`
+      );
+    }
+
     const fileBlob = response.getBlob();
 
     return this.uploadAssetFromFile(advertiserId, fileBlob, filename);
@@ -291,8 +309,132 @@ export class DV360Api extends ApiHelper {
 
     const res = this.callApi(path, 'post', formData, queryParams, '');
 
-    MultiLogger.log(JSON.stringify(res));
+    MultiLogger.getInstance().log(JSON.stringify(res));
 
     return res.asset.mediaId;
+  }
+
+  /**
+   * Get all Native Creatives.
+   *
+   * @param {string} advertiserId
+   * @returns {Object}
+   */
+  getAllNativeCreatives(advertiserId: string) {
+    // Set creative type as filter
+    const filter = {
+      filter: 'creativeType=CREATIVE_TYPE_NATIVE',
+    };
+
+    return this.listCreatives(advertiserId, filter);
+  }
+
+  /**
+   * Get Creative IDs from Line Items
+   *
+   * @param {string} advertiserId
+   * @param {string} lineItemId
+   * @returns {string[]}
+   */
+  getCreativeIdsFromLineItem(advertiserId: string, lineItemId: any) {
+    const lineItem = this.getLineItem(advertiserId, lineItemId);
+    const ids = Object.keys(lineItem).includes('creativeIds')
+      ? lineItem.creativeIds
+      : [];
+
+    return ids;
+  }
+
+  /**
+   * Assign Creative to Line Items.
+   *
+   * @param {string} advertiserid
+   * @param {string[]} lineItemIds
+   * @param {string} creativeId
+   */
+  assignCreativeToLineItems(
+    advertiserId: string,
+    lineItemIds: string[],
+    creativeId: string
+  ) {
+    let success = true;
+
+    for (const lineItemId of lineItemIds) {
+      const existingCreativeIds = this.getCreativeIdsFromLineItem(
+        advertiserId,
+        lineItemId
+      );
+      const lineItem = {
+        advertiserId,
+        lineItemId,
+        creativeIds: existingCreativeIds.concat([creativeId]),
+      };
+
+      try {
+        Logger.log(`Assigning ${creativeId} to ${lineItemId}`);
+        this.updateLineItem(lineItem);
+      } catch (err) {
+        MultiLogger.getInstance().log(
+          `Failed to assign Creative to Line Item: ${err}`
+        );
+        success = false;
+      }
+    }
+
+    if (!success) {
+      throw new Error('Assigning Creative to at least 1 Line Item failed');
+    }
+  }
+
+  /**
+   * Unassign Creative from Line Item.
+   *
+   * @param {string} advertiserId
+   * @param {string[]} lineItemIds
+   * @param {string} creativeId
+   */
+  unassignCreativeFromLineItems(
+    advertiserId: string,
+    lineItemIds: string[],
+    creativeId: string
+  ) {
+    let success = true;
+
+    for (const lineItemId of lineItemIds) {
+      const originalLineItem = this.getLineItem(advertiserId, lineItemId);
+      const lineItem = {
+        advertiserId,
+        lineItemId,
+        creativeIds: originalLineItem.creativeIds.filter(
+          (id: any) => id !== creativeId
+        ),
+      };
+
+      try {
+        Logger.log(`Unassigning ${creativeId} from ${lineItemId}`);
+        this.updateLineItem(lineItem);
+      } catch (err) {
+        MultiLogger.getInstance().log(
+          `Failed to unassign Creative from Line Item: ${err}`
+        );
+        success = false;
+      }
+    }
+
+    if (!success) {
+      throw new Error('Unassigning Creative from at least 1 Line Item failed');
+    }
+  }
+
+  /**
+   * Returns the DV360Api instance, initializing it if it does not exist yet.
+   *
+   * @returns {!DV360Api} The initialized DV360Api instance
+   */
+  static getInstance() {
+    if (typeof this.instance === 'undefined') {
+      this.instance = new DV360Api();
+    }
+    return this.instance;
   }
 }
