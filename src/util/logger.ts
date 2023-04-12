@@ -49,13 +49,9 @@ export class MultiLogger {
    * @param {Array<string | number | Object>} messages
    */
   log(...messages: Array<string | number | Object>) {
-    messages.forEach(msg => {
-      // Write to log sheet
-      this.sheet?.appendRow([JSON.stringify(msg)]);
-
-      // Write to stdout
-      Logger.log(msg);
-    });
+    const msg = messages.join(' ');
+    Logger.log(msg);
+    this.sheet?.appendRow([JSON.stringify(msg)]);
   }
 
   /**
