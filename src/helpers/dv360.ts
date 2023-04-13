@@ -109,7 +109,7 @@ export class DV360Api extends ApiHelper {
    * @param {Object} creative
    * @returns {Object}
    */
-  createCreative(advertiserId: string, creative: Object) {
+  createCreative(advertiserId: string, creative: Object): Creative {
     return this.callApi(
       `advertisers/${advertiserId}/creatives`,
       'post',
