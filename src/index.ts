@@ -346,8 +346,7 @@ function createNativeCreative(row: string[]) {
   MultiLogger.getInstance().log(uploadedCreative);
 
   if (!Object.keys(uploadedCreative).includes('creativeId')) {
-    MultiLogger.getInstance().log('Error creating creative');
-    return null;
+    throw new Error('Error creating creative');
   }
 
   MultiLogger.getInstance().log(
