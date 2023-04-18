@@ -504,7 +504,7 @@ function updateNativeCreative(row: string[]) {
     creative = updateNativeCreativeAssetContentByRole(
       creative,
       'ASSET_ROLE_HEADLINE',
-      headline
+      stringEllipsis(headline, CONFIG.headlineMaxLength)
     );
     updateMask.add('assets');
   }
@@ -514,7 +514,7 @@ function updateNativeCreative(row: string[]) {
     creative = updateNativeCreativeAssetContentByRole(
       creative,
       'ASSET_ROLE_BODY',
-      body
+      stringEllipsis(body, CONFIG.bodyMaxLength)
     );
     updateMask.add('assets');
   }
@@ -524,7 +524,7 @@ function updateNativeCreative(row: string[]) {
     creative = updateNativeCreativeAssetContentByRole(
       creative,
       'ASSET_ROLE_CALL_TO_ACTION',
-      cta
+      stringEllipsis(cta, CONFIG.ctaMaxLength)
     );
     updateMask.add('assets');
   }
