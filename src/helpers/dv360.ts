@@ -221,58 +221,14 @@ export class DV360Api extends ApiHelper {
    * @param {string} filename
    * @return {string} Asset Media ID
    */
-  uploadAssetFromUrlOld(advertiserId: string, url: string, filename: string) {
-    // Download asset from URL
-    const response = UrlFetchApp.fetch(url);
-    console.log(response.getResponseCode());
-    console.log(response.getContentText());
-    const fileBlob = response.getBlob();
-    /*const fileBlob = Drive!.Files!.get('1x18hxpOaMPjc4pFi0hWtMw0YfsW7dWsC', {
-      alt: 'media',
-    });*/
-
-    //const file = DriveApp.getFileById('1x18hxpOaMPjc4pFi0hWtMw0YfsW7dWsC');
-    //const fileBlob = file.getBlob();
-
-    //console.log('fileBlob', fileBlob);
-
-    const formData = {
-      file: fileBlob,
-    };
-
-    // Upload asset as multipart form data
-    const path = `https://displayvideo.googleapis.com/upload/v2/advertisers/${advertiserId}/assets`;
-
-    const queryParams = {
-      filename,
-    };
-
-    const res = this.callApi(path, 'post', formData, queryParams);
-
-    console.log('res', JSON.stringify(res));
-
-    return res.asset.mediaId;
-  }
-
-  /**
-   * Upload Asset from URL.
-   *
-   * @param {string} advertiserId
-   * @param {string} url
-   * @param {string} filename
-   * @return {string} Asset Media ID
-   */
   uploadAssetFromUrl(advertiserId: string, url: string, filename: string) {
     // Download asset from URL
     const params = {
       muteHttpExceptions: false,
       contentType: 'application/json',
     };
-    const request = UrlFetchApp.getRequest(url, params);
 
-    console.log('request', JSON.stringify(request));
-
-    const response = UrlFetchApp.fetch(url, { muteHttpExceptions: false });
+    const response = UrlFetchApp.fetch(url, params);
 
     if (response.getResponseCode() !== 200) {
       throw new Error(
