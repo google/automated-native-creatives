@@ -17,6 +17,7 @@
 export const CONFIG = {
   headlineMaxLength: 25,
   bodyMaxLength: 90,
+  ctaMaxLength: 15,
   sheets: {
     config: {
       name: 'Config',
@@ -35,6 +36,10 @@ export const CONFIG = {
         },
         driveFolderId: {
           row: 5,
+          col: 2,
+        },
+        deleteCreativeOnRemove: {
+          row: 6,
           col: 2,
         },
       },

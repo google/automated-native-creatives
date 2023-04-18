@@ -15,6 +15,7 @@
  */
 
 import { CONFIG } from './config';
+import { DriveHelper } from './helpers/drive';
 import { DV360Api } from './helpers/dv360';
 import { SheetsService } from './helpers/sheets';
 import { MultiLogger } from './util/logger';
@@ -30,7 +31,8 @@ const advertiserId = SheetsService.getInstance().getCellValue(
 /**
  * Add Add-ons menu entry
  */
-function onOpen(e: any) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function onOpen() {
   getUi()
     .createMenu('ANC')
     .addSubMenu(
@@ -61,6 +63,7 @@ function stringEllipsis(str: string, maxLength: number) {
 /**
  * Fetch and set logo asset ID from existing creative.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setLogoAssetIdFromCreative() {
   const response = getUi().prompt(
     'Set Logo Asset ID',
@@ -76,7 +79,7 @@ function setLogoAssetIdFromCreative() {
     );
 
     const logoAsset = creative.assets.find(
-      (elem: { role?: any }) =>
+      (elem: { role?: string }) =>
         Object.keys(elem).includes('role') && elem.role === 'ASSET_ROLE_ICON'
     );
 
@@ -108,6 +111,7 @@ function setLogoAssetIdFromCreative() {
 /**
  * Fetch and set logo asset ID from public URL.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setLogoAssetIdFromUrl() {
   const response = getUi().prompt(
     'Set Logo Asset ID',
@@ -151,6 +155,7 @@ function setLogoAssetIdFromUrl() {
 /**
  * Fetch and set logo asset ID from public URL.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setLogoAssetIdFromDrive() {
   const response = getUi().prompt(
     'Set Logo Asset ID',
@@ -199,6 +204,7 @@ function setLogoAssetIdFromDrive() {
 /**
  * Process Feed.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function processFeed() {
   // First clean up the feed
   cleanupFeed();
@@ -248,8 +254,8 @@ function processFeed() {
 
       // Indicate success
       row[CONFIG.sheets.feed.columns.status] = CONFIG.sheets.feed.enums.success;
-    } catch (err: any) {
-      MultiLogger.getInstance().log(err);
+    } catch (err: unknown) {
+      MultiLogger.getInstance().log((err as Error).message);
 
       // Indicate failure
       row[CONFIG.sheets.feed.columns.status] = CONFIG.sheets.feed.enums.failed;
@@ -299,6 +305,10 @@ function createNativeCreative(row: string[]) {
   const width = Number(row[CONFIG.sheets.feed.columns.width]);
   const height = Number(row[CONFIG.sheets.feed.columns.height]);
   const callToAction = row[CONFIG.sheets.feed.columns.callToAction];
+
+  if (!filename || !width || !height) {
+    throw new Error('Please provide all required fields');
+  }
 
   MultiLogger.getInstance().log(`Creating creative ${name}`);
 
@@ -363,7 +373,13 @@ function cleanupFeed() {
   MultiLogger.getInstance().log('Cleaning up...');
 
   let deleteCorrection = 0;
-  let adjustedRowIndex: any;
+  let adjustedRowIndex: number;
+
+  const deleteCreativeOnRemove = SheetsService.getInstance().getCellValue(
+    CONFIG.sheets.config.name,
+    CONFIG.sheets.config.fields.deleteCreativeOnRemove.row,
+    CONFIG.sheets.config.fields.deleteCreativeOnRemove.col
+  );
 
   const feed = SheetsService.getInstance()
     .getRangeData(CONFIG.sheets.feed.name, 2, 1)
@@ -378,7 +394,7 @@ function cleanupFeed() {
       )
         return;
 
-      adjustedRowIndex = index + 2; // - deleteCorrection;
+      adjustedRowIndex = index + 2 - deleteCorrection;
 
       MultiLogger.getInstance().log(
         `Pausing ${row[CONFIG.sheets.feed.columns.name]}`
@@ -401,11 +417,21 @@ function cleanupFeed() {
         row[CONFIG.sheets.feed.columns.creativeId]
       );
 
-      // Archive Creative in DV360 (required before deletion)
-      //getDV360Api().archiveCreative(advertiserId, row[CONFIG.sheets.feed.columns.creativeId]);
+      if (deleteCreativeOnRemove) {
+        // Archive Creative in DV360 (required before deletion)
+        DV360Api.getInstance().archiveCreative(
+          advertiserId,
+          row[CONFIG.sheets.feed.columns.creativeId]
+        );
 
-      // Delete Creative from DV360
-      //getDV360Api().deleteCreative(advertiserId, row[CONFIG.sheets.feed.columns.creativeId]);
+        // Delete Creative from DV360
+        DV360Api.getInstance().deleteCreative(
+          advertiserId,
+          row[CONFIG.sheets.feed.columns.creativeId]
+        );
+
+        deleteCorrection += 1;
+      }
 
       // Add 1 to adjust for 0-based, 1 for the header and subtract delete correction
       SheetsService.getInstance().clearDefinedRange(
@@ -415,10 +441,8 @@ function cleanupFeed() {
         1,
         0
       );
-
-      deleteCorrection += 1;
-    } catch (err: any) {
-      MultiLogger.getInstance().log(err);
+    } catch (err: unknown) {
+      MultiLogger.getInstance().log((err as Error).message);
       row[CONFIG.sheets.feed.columns.status] = CONFIG.sheets.feed.enums.failed;
 
       SheetsService.getInstance().setValuesInDefinedRange(
@@ -528,13 +552,13 @@ function updateNativeCreative(row: string[]) {
  * @returns {Object}
  */
 function updateNativeCreativeAssetContentByRole(
-  creative: { assets: any[] },
+  creative: { assets: Array<{ asset: Record<string, string>; role: string }> },
   role: string,
-  content: any
+  content: string
 ) {
   // Get index of asset with the role provided
   const index = creative.assets
-    .map((asset: { role: any }) => asset.role)
+    .map((asset: { role: string }) => asset.role)
     .indexOf(role);
 
   // Update content
@@ -619,7 +643,7 @@ function buildNativeCreative(
       },
       {
         asset: {
-          content: callToAction,
+          content: stringEllipsis(callToAction, CONFIG.ctaMaxLength),
         },
         role: 'ASSET_ROLE_CALL_TO_ACTION',
       },

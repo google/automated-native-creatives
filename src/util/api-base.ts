@@ -32,14 +32,14 @@ export class ApiHelper {
    * @param {string} path
    * @param {string} method
    * @param {Object} body
-   * @param {Object} queryParams
+   * @param {Record<string, unknown>} queryParams
    * @returns {Object}
    */
   callApi(
     path: string,
     method = 'get',
     body?: Object | null,
-    queryParams?: Object | null,
+    queryParams?: Record<string, unknown> | null,
     contentType = 'application/json'
   ) {
     let url = path.startsWith('http') ? path : `${this.baseUrl}/${path}`;
@@ -93,7 +93,7 @@ export class ApiHelper {
    * @param {Object|null} obj
    * @returns {string}
    */
-  objectToUrlQuery(url: string, obj?: object) {
+  objectToUrlQuery(url: string, obj?: Record<string, unknown>) {
     if (!obj || (obj && Object.keys(obj).length === 0)) return '';
 
     const prefix = url.includes('?') ? '&' : '?';
@@ -101,11 +101,11 @@ export class ApiHelper {
     return prefix.concat(
       Object.keys(obj)
         .map(key => {
-          if ((obj as any)[key] instanceof Array) {
-            const joined = (obj as any)[key].join(`&${key}=`);
+          if (obj[key] instanceof Array) {
+            const joined = (obj[key] as Array<unknown>).join(`&${key}=`);
             return joined.length ? `${key}=${joined}` : null;
           }
-          return `${key}=${(obj as any)[key]}`;
+          return `${key}=${obj[key]}`;
         })
         .filter(param => param)
         .join('&')

@@ -70,7 +70,7 @@ export class DV360Api extends ApiHelper {
    * @param {string} advertiserid
    * @param {Object} filter
    */
-  listCreatives(advertiserId: string, filter: Object) {
+  listCreatives(advertiserId: string, filter: Record<string, string>) {
     const path = `advertisers/${advertiserId}/creatives`;
 
     return this.callApi(path, 'get', null, filter);
@@ -291,11 +291,15 @@ export class DV360Api extends ApiHelper {
    * Upload Asset from File.
    *
    * @param {string} advertiserId
-   * @param {string} file
+   * @param {GoogleAppsScript.Base.Blob} file
    * @param {string} filename
    * @return {string} Asset Media ID
    */
-  uploadAssetFromFile(advertiserId: string, file: any, filename: string) {
+  uploadAssetFromFile(
+    advertiserId: string,
+    file: GoogleAppsScript.Base.Blob,
+    filename: string
+  ) {
     const formData = {
       file,
     };
@@ -336,7 +340,7 @@ export class DV360Api extends ApiHelper {
    * @param {string} lineItemId
    * @returns {string[]}
    */
-  getCreativeIdsFromLineItem(advertiserId: string, lineItemId: any) {
+  getCreativeIdsFromLineItem(advertiserId: string, lineItemId: string) {
     const lineItem = this.getLineItem(advertiserId, lineItemId);
     const ids = Object.keys(lineItem).includes('creativeIds')
       ? lineItem.creativeIds
@@ -406,7 +410,7 @@ export class DV360Api extends ApiHelper {
         advertiserId,
         lineItemId,
         creativeIds: originalLineItem.creativeIds.filter(
-          (id: any) => id !== creativeId
+          (id: string) => id !== creativeId
         ),
       };
 
