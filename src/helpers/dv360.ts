@@ -224,7 +224,7 @@ export class DV360Api extends ApiHelper {
   uploadAssetFromUrl(advertiserId: string, url: string, filename: string) {
     // Download asset from URL
     const params = {
-      muteHttpExceptions: false,
+      muteHttpExceptions: true,
       contentType: 'application/json',
     };
 
