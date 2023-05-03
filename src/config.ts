@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+export interface Column {
+  index: number;
+  name?: string;
+  required?: boolean;
+}
+
 export const CONFIG = {
   headlineMaxLength: 25,
   bodyMaxLength: 90,
@@ -34,7 +40,7 @@ export const CONFIG = {
           row: 3,
           col: 2,
         },
-        driveFolderId: {
+        driveIdentifier: {
           row: 5,
           col: 2,
         },
@@ -47,20 +53,68 @@ export const CONFIG = {
     feed: {
       name: 'Feed',
       columns: {
-        status: 0,
-        name: 1,
-        headline: 2,
-        body: 3,
-        url: 4,
-        asset: 5,
-        filename: 6,
-        width: 7,
-        height: 8,
-        callToAction: 9,
-        creativeId: 10,
-        lineItemId: 11,
-        remove: 12,
-        hash: 13,
+        status: {
+          index: 0,
+        },
+        name: {
+          index: 1,
+          name: 'Name',
+          required: true,
+        },
+        headline: {
+          index: 2,
+          name: 'Headline',
+          required: true,
+        },
+        body: {
+          index: 3,
+          name: 'Body',
+          required: true,
+        },
+        url: {
+          index: 4,
+          name: 'URL',
+          required: true,
+        },
+        asset: {
+          index: 5,
+          name: 'Asset',
+          required: true,
+        },
+        filename: {
+          index: 6,
+          name: 'Filename',
+          required: true,
+        },
+        width: {
+          index: 7,
+          name: 'Width',
+          required: true,
+        },
+        height: {
+          index: 8,
+          name: 'Height',
+          required: true,
+        },
+        callToAction: {
+          index: 9,
+          name: 'Call to Action',
+          required: true,
+        },
+        creativeId: {
+          index: 10,
+        },
+        lineItemId: {
+          index: 11,
+          name: 'Line Item ID',
+          required: true,
+        },
+        remove: {
+          index: 12,
+        },
+        hash: {
+          index: 13,
+        },
       },
       enums: {
         success: 'Success',
