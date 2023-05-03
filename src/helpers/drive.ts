@@ -65,6 +65,26 @@ export class DriveHelper {
   }
 
   /**
+   * Extract file ID from URL or direct ID.
+   *
+   * @param {string} identifier
+   * @returns {string}
+   */
+  extractFileId(identifier: string) {
+    if (identifier.startsWith('http')) {
+      const match = identifier.match(/\/file\/d\/([\w]*)/);
+
+      if (match && match.length > 1) {
+        return match[1];
+      }
+
+      throw new Error(`Could not extract file ID from '${identifier}'`);
+    }
+
+    return identifier;
+  }
+
+  /**
    * Returns the DriveHelper instance, initializing it if it does not exist yet.
    *
    * @returns {!DriveHelper} The initialized DriveHelper instance
