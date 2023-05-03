@@ -223,8 +223,13 @@ export class DV360Api extends ApiHelper {
    */
   uploadAssetFromUrl(advertiserId: string, url: string, filename: string) {
     // Download asset from URL
+    const headers = {
+      'x-google-apps-script': 'automated-native-creatives',
+    };
+
     const params = {
       muteHttpExceptions: true,
+      headers: headers,
       contentType: 'application/json',
     };
 
