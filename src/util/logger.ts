@@ -17,13 +17,6 @@
 import { CONFIG } from '../config';
 
 /**
- * @type {GoogleAppsScript.Spreadsheet.Sheet}
- */
-/*const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-  CONFIG.sheets.log.name
-);*/
-
-/**
  * Helper class for logging to multiple destinations.
  */
 export class MultiLogger {
