@@ -61,7 +61,7 @@ export class ApiHelper {
     } = {
       headers,
       method: method as GoogleAppsScript.URL_Fetch.HttpMethod,
-      muteHttpExceptions: false,
+      muteHttpExceptions: true,
       payload: {},
     };
 
@@ -81,9 +81,15 @@ export class ApiHelper {
       params.payload = body;
     }
 
-    const res = UrlFetchApp.fetch(url, params).getContentText();
+    const res = UrlFetchApp.fetch(url, params);
 
-    return JSON.parse(res);
+    if (res.getResponseCode() !== 200) {
+      throw new Error(
+        `Error calling API: ${res.getResponseCode()} ${res.getContentText()}`
+      );
+    }
+
+    return JSON.parse(res.getContentText());
   }
 
   /**
