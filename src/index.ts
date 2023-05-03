@@ -447,7 +447,7 @@ function cleanupFeed() {
       adjustedRowIndex = index + 2 - deleteCorrection;
 
       MultiLogger.getInstance().log(
-        `Pausing ${row[CONFIG.sheets.feed.columns.name.index]}`
+        `Pausing ${row[CONFIG.sheets.feed.columns.name.index]}...`
       );
 
       // Pause Creative in DV360
@@ -470,6 +470,9 @@ function cleanupFeed() {
       );
 
       if (deleteCreativeOnRemove) {
+        MultiLogger.getInstance().log(
+          `Deleting ${row[CONFIG.sheets.feed.columns.name.index]}...`
+        );
         // Archive Creative in DV360 (required before deletion)
         DV360Api.getInstance().archiveCreative(
           advertiserId,
