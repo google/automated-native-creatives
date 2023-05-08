@@ -348,12 +348,13 @@ function createNativeCreative(row: string[]) {
   const body = row[CONFIG.sheets.feed.columns.body.index];
   const url = row[CONFIG.sheets.feed.columns.url.index];
   const assetUrl = row[CONFIG.sheets.feed.columns.asset.index];
-  const filename = row[CONFIG.sheets.feed.columns.filename.index];
+  const filename =
+    row[CONFIG.sheets.feed.columns.filename.index] || 'asset.jpg';
   const width = Number(row[CONFIG.sheets.feed.columns.width.index]);
   const height = Number(row[CONFIG.sheets.feed.columns.height.index]);
   const callToAction = row[CONFIG.sheets.feed.columns.callToAction.index];
 
-  if (!filename || !width || !height) {
+  if (!width || !height) {
     throw new Error('Please provide all required fields');
   }
 
