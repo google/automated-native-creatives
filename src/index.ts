@@ -367,11 +367,8 @@ function createNativeCreative(row: string[]) {
 
   // Upload Asset
   if (assetUrl.startsWith('https://drive.google.com')) {
-    const folderId = DriveHelper.getInstance().extractFolderId(assetUrl);
-    const fileBlob = DriveHelper.getInstance().getFileInDriveFolder(
-      folderId,
-      filename
-    );
+    const fileId = DriveHelper.getInstance().extractFileId(assetUrl);
+    const fileBlob = DriveApp.getFileById(fileId).getBlob();
 
     assetMediaId = DV360Api.getInstance().uploadAssetFromFile(
       advertiserId,
