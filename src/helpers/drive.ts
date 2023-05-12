@@ -52,7 +52,7 @@ export class DriveHelper {
    */
   extractFolderId(identifier: string) {
     if (identifier.startsWith('http')) {
-      const match = identifier.match(/\/folders\/([\w]*)/);
+      const match = identifier.match(/\/folders\/([\w-]*)/);
 
       if (match && match.length > 1) {
         return match[1];
@@ -72,7 +72,7 @@ export class DriveHelper {
    */
   extractFileId(identifier: string) {
     if (identifier.startsWith('http')) {
-      const match = identifier.match(/\/file\/d\/([\w]*)/);
+      const match = identifier.match(/\/file\/d\/([\w-]*)/);
 
       if (match && match.length > 1) {
         return match[1];
