@@ -309,7 +309,7 @@ class DV360Api extends ApiHelper {
     }
     uploadAssetFromUrl(advertiserId, url, filename) {
         const headers = {
-            'x-google-apps-script': 'automated-native-creatives',
+            'x-custom-solution': 'automated-native-creatives',
         };
         const params = {
             muteHttpExceptions: true,

@@ -7,10 +7,10 @@
     "clean": "rimraf build dist",
     "build:compile": "tsc",
     "build:bundle": "rollup --no-treeshake -c rollup.config.mjs",
-    "build": "npm run clean && npm run build:compile && npm run build:bundle",
+    "build": "npm run clean && npm run build:compile && npm run build:bundle && ncp appsscript.json dist/appsscript.json",
     "test": "jest src/ --passWithNoTests",
-    "deploy": "npm run license:add && npm run lint && npm run test && npm run build && ncp appsscript.json dist/appsscript.json && ncp .clasp-dev.json .clasp.json && clasp push",
-    "deploy:prod": "npm run license:add && npm run lint && npm run test && npm run build && ncp appsscript.json dist/appsscript.json && ncp .clasp-prod.json .clasp.json && clasp push",
+    "deploy": "npm run license:add && npm run lint && npm run test && npm run build && ncp .clasp-dev.json .clasp.json && clasp push",
+    "deploy:prod": "npm run license:add && npm run lint && npm run test && npm run build && ncp .clasp-prod.json .clasp.json && clasp push",
     "lint": "npm run license:check && eslint --fix src/",
     "license:check": "license-check-and-add check -f license-config.json",
     "license:add": "license-check-and-add add -f license-config.json"
