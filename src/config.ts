@@ -84,17 +84,17 @@ export const CONFIG = {
         filename: {
           index: 6,
           name: 'Filename',
-          required: true,
+          required: false,
         },
         width: {
           index: 7,
           name: 'Width',
-          required: true,
+          required: false,
         },
         height: {
           index: 8,
           name: 'Height',
-          required: true,
+          required: false,
         },
         callToAction: {
           index: 9,
