@@ -18,6 +18,7 @@ const CONFIG = {
     headlineMaxLength: 25,
     bodyMaxLength: 90,
     ctaMaxLength: 15,
+    advertiserNameMaxLength: 25,
     sheets: {
         config: {
             name: 'Config',
@@ -95,19 +96,24 @@ const CONFIG = {
                     name: 'Call to Action',
                     required: true,
                 },
-                creativeId: {
+                advertiserName: {
                     index: 10,
+                    name: 'Advertiser Name',
+                    required: true,
+                },
+                creativeId: {
+                    index: 11,
                 },
                 lineItemId: {
-                    index: 11,
+                    index: 12,
                     name: 'Line Item ID',
                     required: true,
                 },
                 remove: {
-                    index: 12,
+                    index: 13,
                 },
                 hash: {
-                    index: 13,
+                    index: 14,
                 },
             },
             enums: {
@@ -625,6 +631,7 @@ function createNativeCreative(row) {
     const width = Number(row[CONFIG.sheets.feed.columns.width.index]) || 1;
     const height = Number(row[CONFIG.sheets.feed.columns.height.index]) || 1;
     const callToAction = row[CONFIG.sheets.feed.columns.callToAction.index];
+    const advertiserName = row[CONFIG.sheets.feed.columns.advertiserName.index];
     if (!url || !width || !height) {
         throw new Error('Please provide all required fields');
     }
@@ -640,7 +647,7 @@ function createNativeCreative(row) {
         assetMediaId = DV360Api.getInstance().uploadAssetFromUrl(advertiserId, assetUrl, filename);
     }
     MultiLogger.getInstance().log(`Asset ${assetMediaId} uploaded`);
-    const builtCreative = buildNativeCreative(name, headline, body, url, assetMediaId, width, height, callToAction);
+    const builtCreative = buildNativeCreative(name, headline, body, url, assetMediaId, width, height, callToAction, advertiserName);
     const uploadedCreative = DV360Api.getInstance().createCreative(advertiserId, builtCreative);
     MultiLogger.getInstance().log('uploadedCreative', JSON.stringify(uploadedCreative));
     if (!Object.keys(uploadedCreative).includes('creativeId')) {
@@ -731,7 +738,7 @@ function updateNativeCreativeAssetContentByRole(creative, role, content) {
     creative.assets[index].asset.content = content;
     return creative;
 }
-function buildNativeCreative(displayName, headline, body, url, mainMediaId, width, height, callToAction) {
+function buildNativeCreative(displayName, headline, body, url, mainMediaId, width, height, callToAction, advertiserName) {
     const captionUrl = SheetsService.getInstance().getCellValue(CONFIG.sheets.config.name, CONFIG.sheets.config.fields.captionUrl.row, CONFIG.sheets.config.fields.captionUrl.col);
     const logoAssetId = SheetsService.getInstance().getCellValue(CONFIG.sheets.config.name, CONFIG.sheets.config.fields.logoAssetId.row, CONFIG.sheets.config.fields.logoAssetId.col);
     return {
@@ -755,6 +762,12 @@ function buildNativeCreative(displayName, headline, body, url, mainMediaId, widt
                     content: stringEllipsis(headline, CONFIG.headlineMaxLength),
                 },
                 role: 'ASSET_ROLE_HEADLINE',
+            },
+            {
+                asset: {
+                    content: stringEllipsis(advertiserName, CONFIG.advertiserNameMaxLength),
+                },
+                role: 'ASSET_ROLE_ADVERTISER_NAME',
             },
             {
                 asset: {

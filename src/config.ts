@@ -24,6 +24,7 @@ export const CONFIG = {
   headlineMaxLength: 25,
   bodyMaxLength: 90,
   ctaMaxLength: 15,
+  advertiserNameMaxLength: 25,
   sheets: {
     config: {
       name: 'Config',
@@ -101,19 +102,24 @@ export const CONFIG = {
           name: 'Call to Action',
           required: true,
         },
-        creativeId: {
+        advertiserName: {
           index: 10,
+          name: 'Advertiser Name',
+          required: true,
+        },
+        creativeId: {
+          index: 11,
         },
         lineItemId: {
-          index: 11,
+          index: 12,
           name: 'Line Item ID',
           required: true,
         },
         remove: {
-          index: 12,
+          index: 13,
         },
         hash: {
-          index: 13,
+          index: 14,
         },
       },
       enums: {

@@ -353,6 +353,7 @@ function createNativeCreative(row: string[]) {
   const width = Number(row[CONFIG.sheets.feed.columns.width.index]) || 1;
   const height = Number(row[CONFIG.sheets.feed.columns.height.index]) || 1;
   const callToAction = row[CONFIG.sheets.feed.columns.callToAction.index];
+  const advertiserName = row[CONFIG.sheets.feed.columns.advertiserName.index];
 
   if (!url || !width || !height) {
     throw new Error('Please provide all required fields');
@@ -394,7 +395,8 @@ function createNativeCreative(row: string[]) {
     assetMediaId,
     width,
     height,
-    callToAction
+    callToAction,
+    advertiserName
   );
   const uploadedCreative = DV360Api.getInstance().createCreative(
     advertiserId,
@@ -643,7 +645,8 @@ function buildNativeCreative(
   mainMediaId: string,
   width: number,
   height: number,
-  callToAction: string
+  callToAction: string,
+  advertiserName: string
 ) {
   const captionUrl = SheetsService.getInstance().getCellValue(
     CONFIG.sheets.config.name,
@@ -677,6 +680,15 @@ function buildNativeCreative(
           content: stringEllipsis(headline, CONFIG.headlineMaxLength),
         },
         role: 'ASSET_ROLE_HEADLINE',
+      },
+      {
+        asset: {
+          content: stringEllipsis(
+            advertiserName,
+            CONFIG.advertiserNameMaxLength
+          ),
+        },
+        role: 'ASSET_ROLE_ADVERTISER_NAME',
       },
       {
         asset: {
