@@ -698,7 +698,9 @@ function updateNativeCreative(row) {
     const displayName = row[CONFIG.sheets.feed.columns.name.index];
     const headline = stringEllipsis(row[CONFIG.sheets.feed.columns.headline.index], CONFIG.headlineMaxLength);
     const body = stringEllipsis(row[CONFIG.sheets.feed.columns.body.index], CONFIG.bodyMaxLength);
+    const url = row[CONFIG.sheets.feed.columns.url.index];
     const cta = row[CONFIG.sheets.feed.columns.callToAction.index];
+    const advertiserName = row[CONFIG.sheets.feed.columns.advertiserName.index];
     MultiLogger.getInstance().log('Updating creative...');
     let creative = DV360Api.getInstance().getCreative(advertiserId, creativeId);
     MultiLogger.getInstance().log('Got current live creative');
@@ -721,8 +723,21 @@ function updateNativeCreative(row) {
         creative = updateNativeCreativeAssetContentByRole(creative, 'ASSET_ROLE_BODY', stringEllipsis(body, CONFIG.bodyMaxLength));
         updateMask.add('assets');
     }
+    if (url) {
+        creative.exitEvents = [
+            {
+                type: 'EXIT_EVENT_TYPE_DEFAULT',
+                url: url,
+            },
+        ];
+        updateMask.add('exitEvents');
+    }
     if (cta) {
         creative = updateNativeCreativeAssetContentByRole(creative, 'ASSET_ROLE_CALL_TO_ACTION', stringEllipsis(cta, CONFIG.ctaMaxLength));
+        updateMask.add('assets');
+    }
+    if (advertiserName) {
+        creative = updateNativeCreativeAssetContentByRole(creative, 'ASSET_ROLE_ADVERTISER_NAME', stringEllipsis(advertiserName, CONFIG.advertiserNameMaxLength));
         updateMask.add('assets');
     }
     const res = DV360Api.getInstance().updateCreative(creative, Array.from(updateMask).join(','));

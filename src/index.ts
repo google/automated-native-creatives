@@ -531,7 +531,9 @@ function updateNativeCreative(row: string[]) {
     row[CONFIG.sheets.feed.columns.body.index],
     CONFIG.bodyMaxLength
   );
+  const url = row[CONFIG.sheets.feed.columns.url.index];
   const cta = row[CONFIG.sheets.feed.columns.callToAction.index];
+  const advertiserName = row[CONFIG.sheets.feed.columns.advertiserName.index];
 
   MultiLogger.getInstance().log('Updating creative...');
 
@@ -578,12 +580,32 @@ function updateNativeCreative(row: string[]) {
     updateMask.add('assets');
   }
 
+  // Check for updated landing page URL
+  if (url) {
+    creative.exitEvents = [
+      {
+        type: 'EXIT_EVENT_TYPE_DEFAULT',
+        url: url,
+      },
+    ];
+    updateMask.add('exitEvents');
+  }
+
   // Check for updated CTA
   if (cta) {
     creative = updateNativeCreativeAssetContentByRole(
       creative,
       'ASSET_ROLE_CALL_TO_ACTION',
       stringEllipsis(cta, CONFIG.ctaMaxLength)
+    );
+    updateMask.add('assets');
+  }
+
+  if (advertiserName) {
+    creative = updateNativeCreativeAssetContentByRole(
+      creative,
+      'ASSET_ROLE_ADVERTISER_NAME',
+      stringEllipsis(advertiserName, CONFIG.advertiserNameMaxLength)
     );
     updateMask.add('assets');
   }
@@ -617,6 +639,20 @@ function updateNativeCreativeAssetContentByRole(
   const index = creative.assets
     .map((asset: { role: string }) => asset.role)
     .indexOf(role);
+
+  if (index < 0) {
+    // Add asset if not exists
+    const asset = {
+      asset: {
+        content,
+      },
+      role,
+    };
+    creative.assets.push(asset);
+  } else {
+    // Update existing asset
+    creative.assets[index].asset.content = content;
+  }
 
   // Update content
   creative.assets[index].asset.content = content;
